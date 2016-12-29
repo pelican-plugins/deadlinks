@@ -28,7 +28,7 @@ and edit configuration file:
 
 # Settings
 
-To enable dead link checker, set the `DEADLINK_VALIDATE` option in your 
+To enable dead link checker, set the `DEADLINK_VALIDATION` option in your
 Pelican configuration file to True.
 
 Additionally following options might be changed:

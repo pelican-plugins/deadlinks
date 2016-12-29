@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-import logging
+from logging import info, debug, warn
 from bs4 import BeautifulSoup
 from pelican import signals
 
@@ -9,9 +9,6 @@ try:
     from urllib.error import HTTPError, URLError
 except ImportError:
     from urllib2 import urlopen, HTTPError, URLError
-
-
-logger = logging.getLogger("deadlinks3")
 
 DEFAULT_OPTS = {
     'archive':  True,
@@ -133,7 +130,7 @@ def content_object_init(instance):
     if instance._content is None:
         return
     if not user_enabled(instance, 'DEADLINK_VALIDATION'):
-        logger.debug("Configured not to validate links")
+        debug("Configured not to validate links")
         return
 
     settings = instance.settings
@@ -156,7 +153,7 @@ def content_object_init(instance):
         # being empty) This case resolves publish environment with all links
         # starting with http.
         if siteurl and url.startswith(siteurl):
-            logger.info("Url %s skipped because is starts with %s", url, siteurl)
+            info("Url %s skipped because is starts with %s", url, siteurl)
             continue
 
         # No reason to query for the same link again
@@ -167,19 +164,19 @@ def content_object_init(instance):
             cache[url] = (avail, success, code)
 
         if not avail:
-            logger.warn('Dead link: %s (not available)', url)
+            warn('Dead link: %s (not available)', url)
             on_connection_error(anchor, opts)
             continue
         elif not success:
             if code >= 400 and code < 500:
-                logger.warn('Dead link: %s (error code: %d)', url, code)
+                warn('Dead link: %s (error code: %d)', url, code)
                 on_access_error(anchor, code, opts)
                 continue
         else:
             code = 200
 
         # Error codes from out of range [400, 500) are considered good too
-        logger.debug('Good link: %s (%d)', url, code)
+        debug('Good link: %s (%d)', url, code)
 
     instance._content = soup_doc.decode()
 

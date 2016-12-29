@@ -2,7 +2,7 @@
 
 This plugin scans for links and checks status code of requested url.
 For responses such as 403 or 404, the plugin adds a "disabled" class
-to the anchor, extends anchor with a span label and dumps warning to 
+to the anchor, extends anchor with a span label and dumps warning to
 the logger.
 
 
@@ -12,7 +12,7 @@ BeautifulSoup4
 
 # Installation
 
-Clone repository somewhere (let's assume destination is ./plugins/custom/deadlinks) 
+Clone repository somewhere (let's assume destination is ./plugins/custom/deadlinks)
 and edit configuration file:
 
 ```python
@@ -43,7 +43,7 @@ Additionally following options might be changed:
 
 Options:
 
-| Name | Description | Default value | 
+| Name | Description | Default value |
 | ------ | ----------- | ------------- |
 | `archive` | True/False. When enabled invalid links will be replaced with proper archive.org entry | True |
 | `classes` | List of classes to be add to anchor element | Empty list |

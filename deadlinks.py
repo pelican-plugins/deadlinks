@@ -17,9 +17,9 @@ DEFAULT_OPTS = {
     'timeout_is_error':    False,
 }
 
-SPAN_WARNING = '<span class="label label-warning"></span>'
-SPAN_DANGER = '<span class="label label-danger"></span>'
-ARCHIVE_URL = 'http://web.archive.org/web/*/{url}'
+SPAN_WARNING = u'<span class="label label-warning"></span>'
+SPAN_DANGER = u'<span class="label label-danger"></span>'
+ARCHIVE_URL = u'http://web.archive.org/web/*/{url}'
 
 
 def get_status_code(url, opts):

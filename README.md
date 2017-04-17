@@ -8,7 +8,9 @@ the logger.
 
 # Requirements
 
-BeautifulSoup4
+BeautifulSoup4, requests
+
+To install them using pip, type: `pip install bs4 requests`
 
 # Installation
 

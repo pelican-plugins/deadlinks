@@ -3,17 +3,18 @@
 from logging import info, debug, warn
 from bs4 import BeautifulSoup
 from pelican import signals
+import requests
+from requests.exceptions import Timeout, RequestException
 
-try:
-    from urllib.request import urlopen
-    from urllib.error import HTTPError, URLError
-except ImportError:
-    from urllib2 import urlopen, HTTPError, URLError
+UNKNOWN = None
+MS_IN_SECOND = 1000.0
 
 DEFAULT_OPTS = {
     'archive':  True,
     'classes':  [],
     'labels':   False,
+    'timeout_duration_ms': 1000,
+    'timeout_is_error':    False,
 }
 
 SPAN_WARNING = '<span class="label label-warning"></span>'
@@ -21,22 +22,27 @@ SPAN_DANGER = '<span class="label label-danger"></span>'
 ARCHIVE_URL = 'http://web.archive.org/web/*/{url}'
 
 
-def get_status_code(url):
+def get_status_code(url, opts):
     """
     Open connection to the given url and check status code.
 
     :param url: URL of the website to be checked
     :return: (availibility, success, HTTP code)
     """
+    availibility, success, code = (False, False, None)
+    timeout_duration_seconds = get_opt(opts, 'timeout_duration_ms') / MS_IN_SECOND
     try:
-        urlopen(url)
-    except HTTPError as e:
-        out = (True, False, e.code)
-    except URLError as e:
-        out = (False, False, None)
-    else:
-        out = (True, True, 200)
-    return out
+        r = requests.get(url, timeout=timeout_duration_seconds)
+        code = r.status_code
+        availibility = True
+        success = code == requests.codes.ok
+    except Timeout:
+        availibility = False,
+        success = UNKNOWN
+    except RequestException:
+        availibility = UNKNOWN
+        success = False
+    return (availibility, success, code)
 
 
 def user_enabled(inst, opt):
@@ -160,20 +166,27 @@ def content_object_init(instance):
         if url in cache:
             avail, success, code = cache[url]
         else:
-            avail, success, code = get_status_code(url)
+            # TODO: No reason to query for sites from already timed-out domain
+            avail, success, code = get_status_code(url, opts)
             cache[url] = (avail, success, code)
 
         if not avail:
-            warn('Dead link: %s (not available)', url)
-            on_connection_error(anchor, opts)
+            timeout_is_error = get_opt(opts, 'timeout_is_error')
+            if timeout_is_error:
+                warn('Dead link: %s (not available)', url)
+                on_connection_error(anchor, opts)
+            else:
+                warn('Skipping: %s (not available)', url)
             continue
+
         elif not success:
             if code >= 400 and code < 500:
                 warn('Dead link: %s (error code: %d)', url, code)
                 on_access_error(anchor, code, opts)
                 continue
-        else:
-            code = 200
+            else:
+                # Codes other than [400, 500) are ignored
+                pass
 
         # Error codes from out of range [400, 500) are considered good too
         debug('Good link: %s (%d)', url, code)

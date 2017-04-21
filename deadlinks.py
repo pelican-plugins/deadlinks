@@ -37,7 +37,7 @@ def get_status_code(url, opts):
         availibility = True
         success = code == requests.codes.ok
     except Timeout:
-        availibility = False,
+        availibility = False
         success = UNKNOWN
     except RequestException:
         availibility = UNKNOWN

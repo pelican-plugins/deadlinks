@@ -39,7 +39,9 @@ Additionally following options might be changed:
     DEADLINK_OPTS = {
         'archive':  True,
         'classes': ['custom-class1', 'disabled'],
-        'labels':   True
+        'labels':   True,
+        'timeout_duration_ms': 1000,
+        'timeout_is_error':    False,
     }
 ```
 
@@ -50,4 +52,5 @@ Options:
 | `archive` | True/False. When enabled invalid links will be replaced with proper archive.org entry | True |
 | `classes` | List of classes to be add to anchor element | Empty list |
 | `labels` | Insert bootstrap's label after the anchor element | False |
-
+| `timeout_duration_ms` | Time in ms after which request is considered as timed out | 1000 |
+| `timeout_is_error` | True/False. When enabled every time out is considered as dead link | False |

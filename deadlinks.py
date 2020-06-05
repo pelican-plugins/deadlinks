@@ -1,10 +1,13 @@
 # -*- coding: utf8 -*-
 
-from logging import info, debug, warn
+import logging
 from bs4 import BeautifulSoup
 from pelican import signals
 import requests
 from requests.exceptions import Timeout, RequestException
+
+
+log = logging.getLogger(__name__)
 
 UNKNOWN = None
 MS_IN_SECOND = 1000.0
@@ -136,7 +139,7 @@ def content_object_init(instance):
     if instance._content is None:
         return
     if not user_enabled(instance, 'DEADLINK_VALIDATION'):
-        debug("Configured not to validate links")
+        log.debug("Configured not to validate links")
         return
 
     settings = instance.settings
@@ -159,7 +162,7 @@ def content_object_init(instance):
         # being empty) This case resolves publish environment with all links
         # starting with http.
         if siteurl and url.startswith(siteurl):
-            info("Url %s skipped because is starts with %s", url, siteurl)
+            log.info("Url %s skipped because is starts with %s", url, siteurl)
             continue
 
         # No reason to query for the same link again
@@ -173,15 +176,15 @@ def content_object_init(instance):
         if not avail:
             timeout_is_error = get_opt(opts, 'timeout_is_error')
             if timeout_is_error:
-                warn('Dead link: %s (not available)', url)
+                log.warning('Dead link: %s (not available)', url)
                 on_connection_error(anchor, opts)
             else:
-                warn('Skipping: %s (not available)', url)
+                log.warning('Skipping: %s (not available)', url)
             continue
 
         elif not success:
             if code >= 400 and code < 500:
-                warn('Dead link: %s (error code: %d)', url, code)
+                log.warning('Dead link: %s (error code: %d)', url, code)
                 on_access_error(anchor, code, opts)
                 continue
             else:
@@ -189,7 +192,7 @@ def content_object_init(instance):
                 pass
 
         # Error codes from out of range [400, 500) are considered good too
-        debug('Good link: %s (%d)', url, code)
+        log.debug('Good link: %s (%d)', url, code)
 
     instance._content = soup_doc.decode()
 

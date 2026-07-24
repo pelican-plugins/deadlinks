@@ -143,15 +143,24 @@ def content_object_init(instance):  # noqa: PLR0912
             continue
         url = anchor["href"]
 
-        # local files and other links are not really intresting
         if not url.startswith("http"):
+            log.info(f'Internal anchor link check: {url}')
+            all_titles=soup_doc(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+            state=False
+            for title in all_titles:
+                log.debug(f'Internal anchor link check "{url}" and {title.get("id")}')
+                if url == f'#{title.get("id")}':
+                    state=True
+
+            if not state:
+                log.error(f'This internal url are broken {url}.')
             continue
 
         # Previous case works also for debugging environment (with SITEURL
         # being empty) This case resolves publish environment with all links
         # starting with http.
         if siteurl and url.startswith(siteurl):
-            log.info("Url %s skipped because is starts with %s", url, siteurl)
+            log.info(f'Url {url} skipped because is starts with {siteurl}')
             continue
 
         # No reason to query for the same link again
@@ -165,15 +174,15 @@ def content_object_init(instance):  # noqa: PLR0912
         if not avail:
             timeout_is_error = get_opt(opts, "timeout_is_error")
             if timeout_is_error:
-                log.warning("Dead link: %s (not available)", url)
+                log.warning(f'Dead link: {url} (not available)')
                 on_connection_error(anchor, opts)
             else:
-                log.warning("Skipping: %s (not available)", url)
+                log.warning(f'Skipping: {url} (not available)')
             continue
 
         elif not success:
             if code >= 400 and code < 500:  # noqa: PLR2004
-                log.warning("Dead link: %s (error code: %d)", url, code)
+                log.warning(f'Dead link: {url} (error code: {code})')
                 on_access_error(anchor, code, opts)
                 continue
             else:
@@ -181,7 +190,7 @@ def content_object_init(instance):  # noqa: PLR0912
                 pass
 
         # Error codes from out of range [400, 500) are considered good too
-        log.debug("Good link: %s (%d)", url, code)
+        log.debug(f'Good link: {url} ({code})')
 
     instance._content = soup_doc.decode()
 
